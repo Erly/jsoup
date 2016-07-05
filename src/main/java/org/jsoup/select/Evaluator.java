@@ -703,4 +703,14 @@ public abstract class Evaluator {
             return String.format(":matchesOwn(%s", pattern);
         }
     }
+
+    /**
+     * Evaluator for matching the last element (jquery :last)
+     */
+    public static final class IsLast extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+          return element.siblingIndex() == root.children().size() - 1;
+        }
+    }
 }

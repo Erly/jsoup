@@ -192,6 +192,10 @@ class QueryParser {
         	evals.add(new Evaluator.IsEmpty());
         else if (tq.matchChomp(":root"))
         	evals.add(new Evaluator.IsRoot());
+        else if (tq.matchChomp(":first"))
+            first();
+        else if (tq.matchChomp(":last"))
+            last();
 		else // unhandled
             throw new Selector.SelectorParseException("Could not parse query '%s': unexpected token at '%s'", query, tq.remainder());
 
@@ -352,5 +356,15 @@ class QueryParser {
         Validate.notEmpty(subQuery, ":not(selector) subselect must not be empty");
 
         evals.add(new StructuralEvaluator.Not(parse(subQuery)));
+    }
+
+    // jquery pseudo selector :first  (JQuery documentation states that it's the same as eq(0))
+    private void first() {
+        evals.add(new Evaluator.IndexEquals(0));
+    }
+
+    // jquery pseudo selector :last
+    private void last() {
+        evals.add(new Evaluator.IsLast());
     }
 }
