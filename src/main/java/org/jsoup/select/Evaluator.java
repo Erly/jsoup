@@ -3,7 +3,10 @@ package org.jsoup.select;
 import org.jsoup.helper.Validate;
 import org.jsoup.nodes.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -717,5 +720,85 @@ public abstract class Evaluator {
         public boolean matches(Element root, Element element) {
             return element.nodeName().matches("\\H[1-6]\\b");
         }
+    }
+
+    /**
+     * Evaluator for matching parent elements (jquery :parent)
+     */
+    public static final class IsParent extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return element.childNodeSize() > 0;
+        }
+    }
+
+    /**
+     * Evaluator for matching the visible elements (jquery :visible)
+     */
+    public static final class IsVisible extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return IsVisible(element);
+        }
+    }
+
+    /**
+     * Evaluator for matching the hidden elements (jquery :hidden)
+     */
+    public static final class IsHidden extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return !IsVisible(element);
+        }
+    }
+
+    private static boolean IsVisible(Element element) {
+        Element el = element;
+        while (el != null) {
+            if (ElementIsItselfHidden(el)) {
+                return false;
+            }
+            el = el.parent();
+            if (el != null && el.tagName().equals("#root")) break;
+        }
+        return true;
+    }
+
+    private static final Pattern NUMBER_PART = Pattern.compile("\\d+");
+
+    private static boolean ElementIsItselfHidden(Element element)
+    {
+        if (element.nodeName().equals("input") && element.attr("type").equals("hidden"))
+        {
+            return true;
+        }
+
+        String inlineStyle = element.attr("style");
+
+        // TODO: Only inlined style is checked. A CSS parser should be used to check the css styles.
+        HashMap<String, String> styleMap = new HashMap<String, String>();
+        String[] styleArray = inlineStyle.split(";");
+        for (String styleProp : styleArray) {
+            String[] prop = styleProp.split(";");
+            styleMap.put(prop[0], prop[1]);
+        }
+
+        if (styleMap.get("display").equals("none"))
+        {
+            return true;
+        }
+
+        double wid = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
+        double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
+        if (wid == 0 || height == 0)
+        {
+            return true;
+        }
+
+        String widthAttr, heightAttr;
+        widthAttr = element.attr("width");
+        heightAttr = element.attr("height");
+
+        return widthAttr.equals("0") || heightAttr.equals("0");
     }
 }

@@ -202,6 +202,12 @@ class QueryParser {
             evals.add(new Evaluator.IsNthChild(2, 0));
         else if (tq.matchChomp(":header"))
             evals.add(new Evaluator.IsHeader());
+        else if (tq.matchChomp(":parent"))
+            evals.add(new Evaluator.IsParent());
+        else if (tq.matchChomp(":visible"))
+            evals.add(new Evaluator.IsVisible());
+        else if (tq.matchChomp(":hidden"))
+            evals.add(new Evaluator.IsHidden());
 		else // unhandled
             throw new Selector.SelectorParseException("Could not parse query '%s': unexpected token at '%s'", query, tq.remainder());
 
