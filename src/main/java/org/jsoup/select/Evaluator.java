@@ -1,12 +1,7 @@
 package org.jsoup.select;
 
 import org.jsoup.helper.Validate;
-import org.jsoup.nodes.Comment;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.DocumentType;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
-import org.jsoup.nodes.XmlDeclaration;
+import org.jsoup.nodes.*;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -710,7 +705,17 @@ public abstract class Evaluator {
     public static final class IsLast extends Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
-          return element.siblingIndex() == root.children().size() - 1;
+            return element.siblingIndex() == root.children().size() - 1;
+        }
+    }
+
+    /**
+     * Evaluator for matching header elements (jquery :header)
+     */
+    public static final class IsHeader extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return element.nodeName().matches("\\H[1-6]\\b");
         }
     }
 }
