@@ -204,6 +204,8 @@ class QueryParser {
             evals.add(new Evaluator.IsHeader());
         else if (tq.matchChomp(":parent"))
             evals.add(new Evaluator.IsParent());
+        else if (tq.matchChomp(":selected"))
+            evals.add(new Evaluator.IsSelected());
         else if (tq.matchChomp(":visible"))
             evals.add(new Evaluator.IsVisible());
         else if (tq.matchChomp(":hidden"))

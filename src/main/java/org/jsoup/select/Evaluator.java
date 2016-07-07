@@ -733,6 +733,16 @@ public abstract class Evaluator {
     }
 
     /**
+     * Evaluator for matching selected elements (jquery :selected)
+     */
+    public static final class IsSelected extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return element.attr("selected") == "true";
+        }
+    }
+
+    /**
      * Evaluator for matching the visible elements (jquery :visible)
      */
     public static final class IsVisible extends Evaluator {
