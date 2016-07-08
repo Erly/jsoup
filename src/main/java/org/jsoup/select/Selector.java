@@ -145,6 +145,20 @@ public class Selector {
     }
 
     private Elements select() {
+        if (evaluator instanceof CombiningEvaluator) {
+            Elements elementsToQuery;
+            Elements selectedElements = new Elements(root);
+            for (Evaluator eval : ((CombiningEvaluator) evaluator).evaluators) {
+                elementsToQuery = selectedElements.clone();
+                selectedElements.clear();
+                int elementsToQuerySize = elementsToQuery.size();
+                for (int i = 0; i < elementsToQuerySize; i++) {
+                    selectedElements.addAll(Collector.collect(eval, elementsToQuery.get(i), i, elementsToQuerySize));
+                }
+            }
+            return selectedElements;
+        }
+
         return Collector.collect(evaluator, root);
     }
 

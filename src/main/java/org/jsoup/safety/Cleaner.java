@@ -109,6 +109,10 @@ public class Cleaner {
             }
         }
 
+        public void head(Node node, int depth, int index, int collectionSize) {
+            head(node, depth);
+        }
+
         public void tail(Node source, int depth) {
             if (source instanceof Element && whitelist.isSafeTag(source.nodeName())) {
                 destination = destination.parent(); // would have descended, so pop destination stack

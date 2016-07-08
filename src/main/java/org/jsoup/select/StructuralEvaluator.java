@@ -42,6 +42,10 @@ abstract class StructuralEvaluator extends Evaluator {
             return !evaluator.matches(root, node);
         }
 
+        public boolean matches(Element root, Element node, int index, int collectionSize) {
+            return !evaluator.matches(root, node, index, collectionSize);
+        }
+
         @Override
         public String toString() {
             return String.format(":not%s", evaluator);

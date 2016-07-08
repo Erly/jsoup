@@ -210,6 +210,10 @@ public class NodeTest {
                 accum.append("<" + node.nodeName() + ">");
             }
 
+            public void head(Node node, int depth, int index, int collectionSize) {
+                head(node, depth);
+            }
+
             public void tail(Node node, int depth) {
                 accum.append("</" + node.nodeName() + ">");
             }

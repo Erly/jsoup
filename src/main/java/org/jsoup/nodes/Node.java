@@ -148,6 +148,10 @@ public abstract class Node implements Cloneable {
                 node.baseUri = baseUri;
             }
 
+            public void head(Node node, int depth, int index, int collectionSize) {
+                head(node, depth);
+            }
+
             public void tail(Node node, int depth) {
             }
         });
@@ -679,6 +683,10 @@ public abstract class Node implements Cloneable {
 			} catch (IOException exception) {
 				throw new SerializationException(exception);
 			}
+        }
+
+        public void head(Node node, int depth, int index, int collectionSize) {
+            head(node, depth);
         }
 
         public void tail(Node node, int depth) {

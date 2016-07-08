@@ -85,6 +85,10 @@ public class HtmlToPlainText {
                 append("\n");
         }
 
+        public void head(Node node, int depth, int index, int collectionSize) {
+            head(node, depth);
+        }
+
         // hit when all of the node's children (if any) have been visited
         public void tail(Node node, int depth) {
             String name = node.nodeName();

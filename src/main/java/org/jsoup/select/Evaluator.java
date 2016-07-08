@@ -28,6 +28,11 @@ public abstract class Evaluator {
      */
     public abstract boolean matches(Element root, Element element);
 
+    public boolean matches(Element root, Element element, int index, int collectionSize)
+    {
+        return matches(root, element);
+    }
+
     /**
      * Evaluator for tag name
      */
@@ -353,6 +358,11 @@ public abstract class Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
             return element.elementSiblingIndex() == index;
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize) {
+            return this.index == index;
         }
 
         @Override
@@ -703,12 +713,32 @@ public abstract class Evaluator {
     }
 
     /**
+     * Evaluator for matching the first element (jquery :first)
+     */
+    public static final class IsFirst extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return true;
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize) {
+            return index == 0;
+        }
+    }
+
+    /**
      * Evaluator for matching the last element (jquery :last)
      */
     public static final class IsLast extends Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
-            return element.siblingIndex() == root.children().size() - 1;
+            return true;
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize) {
+            return index == collectionSize - 1;
         }
     }
 
@@ -790,19 +820,21 @@ public abstract class Evaluator {
         String[] styleArray = inlineStyle.split(";");
         for (String styleProp : styleArray) {
             String[] prop = styleProp.split(";");
-            styleMap.put(prop[0], prop[1]);
+            if (prop.length == 2) styleMap.put(prop[0], prop[1]);
         }
 
-        if (styleMap.get("display").equals("none"))
+        if (styleMap.containsKey("display") && styleMap.get("display").equals("none"))
         {
             return true;
         }
 
-        double wid = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
-        double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
-        if (wid == 0 || height == 0)
-        {
-            return true;
+        if (styleMap.containsKey("width")) {
+            double width = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
+            if (width == 0) return true;
+        }
+        if (styleMap.containsKey("height")) {
+            double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
+            if (height == 0) return true;
         }
 
         String widthAttr, heightAttr;

@@ -2,6 +2,7 @@ package org.jsoup.helper;
 
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Attributes;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.NodeTraversor;
 import org.jsoup.select.NodeVisitor;
 import org.w3c.dom.Comment;
@@ -111,6 +112,10 @@ public class W3CDom {
             } else {
                 // unhandled
             }
+        }
+
+        public void head(Node node, int depth, int index, int collectionSize) {
+            head(node, depth);
         }
 
         public void tail(org.jsoup.nodes.Node source, int depth) {

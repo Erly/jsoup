@@ -20,6 +20,8 @@ public interface NodeVisitor {
      */
     void head(Node node, int depth);
 
+    void head(Node node, int depth, int index, int collectionSize);
+
     /**
      * Callback for when a node is last visited, after all of its descendants have been visited.
      *

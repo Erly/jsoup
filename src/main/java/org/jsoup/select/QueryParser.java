@@ -98,7 +98,20 @@ class QueryParser {
         if (combinator == '>')
             currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.ImmediateParent(currentEval));
         else if (combinator == ' ')
-            currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.Parent(currentEval));
+            if (currentEval instanceof CombiningEvaluator.And) {
+                if (newEval instanceof CombiningEvaluator.And) {
+                    ((CombiningEvaluator.And) currentEval).evaluators.addAll(((CombiningEvaluator.And) newEval).evaluators);
+                } else {
+                    ((CombiningEvaluator.And) currentEval).evaluators.add(newEval);
+                }
+            } else {
+                if (newEval instanceof CombiningEvaluator.And) {
+                    currentEval = new CombiningEvaluator.And(currentEval);
+                    ((CombiningEvaluator.And) currentEval).evaluators.addAll(((CombiningEvaluator.And) newEval).evaluators);
+                } else {
+                    currentEval = new CombiningEvaluator.And(currentEval, newEval);
+                }
+            }
         else if (combinator == '+')
             currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.ImmediatePreviousSibling(currentEval));
         else if (combinator == '~')
@@ -193,7 +206,7 @@ class QueryParser {
         else if (tq.matchChomp(":root"))
         	evals.add(new Evaluator.IsRoot());
         else if (tq.matchChomp(":first"))
-            evals.add(new Evaluator.IndexEquals(0));
+            evals.add(new Evaluator.IsFirst());
         else if (tq.matchChomp(":last"))
             evals.add(new Evaluator.IsLast());
         else if (tq.matchChomp(":odd"))
@@ -328,7 +341,11 @@ class QueryParser {
 
     private int consumeIndex() {
         String indexS = tq.chompTo(")").trim();
-        Validate.isTrue(StringUtil.isNumeric(indexS), "Index must be numeric");
+        if (indexS.startsWith("-")) {
+            Validate.isTrue(StringUtil.isNumeric(indexS.substring(1)), "Index must be numeric");
+        } else {
+            Validate.isTrue(StringUtil.isNumeric(indexS), "Index must be numeric");
+        }
         return Integer.parseInt(indexS);
     }
 

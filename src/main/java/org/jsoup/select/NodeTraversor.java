@@ -45,4 +45,27 @@ public class NodeTraversor {
             }
         }
     }
+
+    public void traverse(Node root, int index, int collectionSize) {
+        Node node = root;
+        int depth = 0;
+
+        while (node != null) {
+            visitor.head(node, depth, index, collectionSize);
+            if (node.childNodeSize() > 0) {
+                node = node.childNode(0);
+                depth++;
+            } else {
+                while (node.nextSibling() == null && depth > 0) {
+                    visitor.tail(node, depth);
+                    node = node.parentNode();
+                    depth--;
+                }
+                visitor.tail(node, depth);
+                if (node == root)
+                    break;
+                node = node.nextSibling();
+            }
+        }
+    }
 }

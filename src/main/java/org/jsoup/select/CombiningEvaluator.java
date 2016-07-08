@@ -58,6 +58,16 @@ abstract class CombiningEvaluator extends Evaluator {
         }
 
         @Override
+        public boolean matches(Element root, Element node, int index, int collectionSize) {
+            for (int i = 0; i < num; i++) {
+                Evaluator s = evaluators.get(i);
+                if (!s.matches(root, node, index, collectionSize))
+                    return false;
+            }
+            return true;
+        }
+
+        @Override
         public String toString() {
             return StringUtil.join(evaluators, " ");
         }
@@ -91,6 +101,16 @@ abstract class CombiningEvaluator extends Evaluator {
             for (int i = 0; i < num; i++) {
                 Evaluator s = evaluators.get(i);
                 if (s.matches(root, node))
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean matches(Element root, Element node, int index, int collectionSize) {
+            for (int i = 0; i < num; i++) {
+                Evaluator s = evaluators.get(i);
+                if (s.matches(root, node, index, collectionSize))
                     return true;
             }
             return false;

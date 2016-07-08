@@ -25,6 +25,18 @@ public class Collector {
         return elements;
     }
 
+    /**
+     Build a list of elements, by visiting root and every descendant of root, and testing it against the evaluator.
+     @param eval Evaluator to test elements against
+     @param root root of tree to descend
+     @return list of matches; empty if none
+     */
+    public static Elements collect (Evaluator eval, Element root, int index, int collectionSize) {
+        Elements elements = new Elements();
+        new NodeTraversor(new Accumulator(root, elements, eval)).traverse(root, index, collectionSize);
+        return elements;
+    }
+
     private static class Accumulator implements NodeVisitor {
         private final Element root;
         private final Elements elements;
@@ -40,6 +52,14 @@ public class Collector {
             if (node instanceof Element) {
                 Element el = (Element) node;
                 if (eval.matches(root, el))
+                    elements.add(el);
+            }
+        }
+
+        public void head(Node node, int depth, int index, int collectionSize) {
+            if (node instanceof Element) {
+                Element el = (Element) node;
+                if (eval.matches(root, el, index, collectionSize))
                     elements.add(el);
             }
         }
