@@ -96,9 +96,21 @@ class QueryParser {
 
         // for most combinators: change the current eval into an AND of the current eval and the new eval
         if (combinator == '>')
-            currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.ImmediateParent(currentEval));
+            if (newEval instanceof CombiningEvaluator.And) {
+                ArrayList<Evaluator> firstEvals = new ArrayList<Evaluator>();
+                ArrayList<Evaluator> secondEvals = new ArrayList<Evaluator>();
+                Boolean firstEvalsFinished = false;
+                for (Evaluator ev : ((CombiningEvaluator.And) newEval).evaluators) {
+                    if (ev instanceof StructuralEvaluator) firstEvalsFinished = true;
+                    if (!firstEvalsFinished) firstEvals.add(ev);
+                    else secondEvals.add(ev);
+                }
+                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.ImmediateParent(currentEval), new StructuralEvaluator.Depth0(new CombiningEvaluator.And(firstEvals)), new CombiningEvaluator.And(secondEvals));
+            } else {
+                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.ImmediateParent(currentEval), new StructuralEvaluator.Depth0(newEval));
+            }
         else if (combinator == ' ')
-            if (currentEval instanceof CombiningEvaluator.And) {
+            /*if (currentEval instanceof CombiningEvaluator.And) {
                 if (newEval instanceof CombiningEvaluator.And) {
                     ((CombiningEvaluator.And) currentEval).evaluators.addAll(((CombiningEvaluator.And) newEval).evaluators);
                 } else {
@@ -111,11 +123,12 @@ class QueryParser {
                 } else {
                     currentEval = new CombiningEvaluator.And(currentEval, newEval);
                 }
-            }
+            }*/
+            currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.ImmediateParent(currentEval), newEval);
         else if (combinator == '+')
-            currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.ImmediatePreviousSibling(currentEval));
+            currentEval = new CombiningEvaluator.And(new StructuralEvaluator.ImmediatePreviousSibling(currentEval), newEval);
         else if (combinator == '~')
-            currentEval = new CombiningEvaluator.And(newEval, new StructuralEvaluator.PreviousSibling(currentEval));
+            currentEval = new CombiningEvaluator.And(new StructuralEvaluator.PreviousSibling(currentEval), newEval);
         else if (combinator == ',') { // group or.
             CombiningEvaluator.Or or;
             if (currentEval instanceof CombiningEvaluator.Or) {
@@ -144,8 +157,8 @@ class QueryParser {
                 sq.append("(").append(tq.chompBalanced('(', ')')).append(")");
             else if (tq.matches("["))
                 sq.append("[").append(tq.chompBalanced('[', ']')).append("]");
-            else if (tq.matchesAny(combinators))
-                break;
+//            else if (tq.matchesAny(combinators))
+//                break;
             else
                 sq.append(tq.consume());
         }
@@ -167,7 +180,7 @@ class QueryParser {
             indexLessThan();
         else if (tq.matchChomp(":gt("))
             indexGreaterThan();
-        else if (tq.matchChomp(":eq("))
+        else if (tq.matchChomp(":eq(") || tq.matchChomp(":nth("))
             indexEquals();
         else if (tq.matches(":has("))
             has();
@@ -210,9 +223,9 @@ class QueryParser {
         else if (tq.matchChomp(":last"))
             evals.add(new Evaluator.IsLast());
         else if (tq.matchChomp(":odd"))
-            evals.add(new Evaluator.IsNthChild(2, 1));
+            evals.add(new Evaluator.IsOdd());
         else if (tq.matchChomp(":even"))
-            evals.add(new Evaluator.IsNthChild(2, 0));
+            evals.add(new Evaluator.IsEven());
         else if (tq.matchChomp(":header"))
             evals.add(new Evaluator.IsHeader());
         else if (tq.matchChomp(":parent"))
@@ -361,6 +374,7 @@ class QueryParser {
     private void contains(boolean own) {
         tq.consume(own ? ":containsOwn" : ":contains");
         String searchText = TokenQueue.unescape(tq.chompBalanced('(', ')'));
+        searchText = searchText.replaceAll("^\"|\"$|^'|'$", "");
         Validate.notEmpty(searchText, ":contains(text) query must not be empty");
         if (own)
             evals.add(new Evaluator.ContainsOwnText(searchText));

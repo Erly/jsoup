@@ -588,16 +588,21 @@ public abstract class Node implements Cloneable {
         accum.append("\n").append(StringUtil.padding(depth * out.indentAmount()));
     }
 
-    /**
-     * Check if this node is the same instance of another (object identity test).
-     * @param o other object to compare to
-     * @return true if the content of this node is the same as the other
-     * @see Node#hasSameValue(Object) to compare nodes by their value
-     */
+//    /**
+//     * Check if this node is the same instance of another (object identity test).
+//     * @param o other object to compare to
+//     * @return true if the content of this node is the same as the other
+//     * @see Node#hasSameValue(Object) to compare nodes by their value
+//     */
+//    @Override
+//    public boolean equals(Object o) {
+//        // implemented just so that javadoc is clear this is an identity test
+//        return this == o;
+//    }
+
     @Override
     public boolean equals(Object o) {
-        // implemented just so that javadoc is clear this is an identity test
-        return this == o;
+        return this.isSame((Node) o);
     }
 
     /**
@@ -614,6 +619,11 @@ public abstract class Node implements Cloneable {
         return this.outerHtml().equals(((Node) o).outerHtml());
     }
 
+    public boolean isSame(Node o) {
+        if (this == o) return true;
+        return hasSameValue(o) && ((parentNode == null && o.parentNode == null) || parentNode.isSame(o.parentNode));
+    }
+
     /**
      * Create a stand-alone, deep copy of this node, and all of its children. The cloned node will have no siblings or
      * parent node. As a stand-alone object, any changes made to the clone or any of its children will not impact the
@@ -624,6 +634,13 @@ public abstract class Node implements Cloneable {
      */
     @Override
     public Node clone() {
+        Node parentClone = parentNode != null ? parentNode.clone() : null;
+        if (parentClone != null) {
+            for (Node child :
+                    parentClone.childNodes) {
+                if (child.hasSameValue(this)) return child;
+            }
+        }
         Node thisClone = doClone(null); // splits for orphan
 
         // Queue up nodes that need their children cloned (BFS).
@@ -658,6 +675,32 @@ public abstract class Node implements Cloneable {
 
         clone.parentNode = parent; // can be null, to create an orphan split
         clone.siblingIndex = parent == null ? 0 : siblingIndex;
+        clone.attributes = attributes != null ? attributes.clone() : null;
+        clone.baseUri = baseUri;
+        clone.childNodes = new ArrayList<Node>(childNodes.size());
+
+        for (Node child: childNodes)
+            clone.childNodes.add(child);
+
+        return clone;
+    }
+
+    protected Node doCloneRecursively(Node parent) {
+        Node clone;
+
+        try {
+            clone = (Node) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (parent != null) {
+            clone.parentNode = parent.doCloneRecursively(parent.parentNode); // can be null, to create an orphan split
+            clone.siblingIndex = siblingIndex;
+        } else {
+            clone.siblingIndex = 0;
+        }
+
         clone.attributes = attributes != null ? attributes.clone() : null;
         clone.baseUri = baseUri;
         clone.childNodes = new ArrayList<Node>(childNodes.size());

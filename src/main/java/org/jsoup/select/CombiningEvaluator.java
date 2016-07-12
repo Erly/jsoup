@@ -21,7 +21,16 @@ abstract class CombiningEvaluator extends Evaluator {
 
     CombiningEvaluator(Collection<Evaluator> evaluators) {
         this();
-        this.evaluators.addAll(evaluators);
+        for (Evaluator evaluator : evaluators) {
+            if (evaluator instanceof CombiningEvaluator.And) {
+                this.evaluators.addAll(((CombiningEvaluator.And)evaluator).evaluators);
+            } else {
+                this.evaluators.add(evaluator);
+            }
+        }
+
+        //prioritizeVisibleHiddenPseudoSelectors();
+
         updateNumEvaluators();
     }
 
@@ -31,6 +40,13 @@ abstract class CombiningEvaluator extends Evaluator {
     
     void replaceRightMostEvaluator(Evaluator replacement) {
         evaluators.set(num - 1, replacement);
+    }
+
+    void prioritizeVisibleHiddenPseudoSelectors() {
+        for (int i = 0; i < evaluators.size(); i++) {
+            if (evaluators.get(i) instanceof Evaluator.IsVisible || evaluators.get(i) instanceof Evaluator.IsHidden)
+                evaluators.add(0, evaluators.remove(i));
+        }
     }
 
     void updateNumEvaluators() {
@@ -58,10 +74,10 @@ abstract class CombiningEvaluator extends Evaluator {
         }
 
         @Override
-        public boolean matches(Element root, Element node, int index, int collectionSize) {
+        public boolean matches(Element root, Element node, int index, int collectionSize, int depth) {
             for (int i = 0; i < num; i++) {
                 Evaluator s = evaluators.get(i);
-                if (!s.matches(root, node, index, collectionSize))
+                if (!s.matches(root, node, index, collectionSize, depth))
                     return false;
             }
             return true;
@@ -107,10 +123,10 @@ abstract class CombiningEvaluator extends Evaluator {
         }
 
         @Override
-        public boolean matches(Element root, Element node, int index, int collectionSize) {
+        public boolean matches(Element root, Element node, int index, int collectionSize, int depth) {
             for (int i = 0; i < num; i++) {
                 Evaluator s = evaluators.get(i);
-                if (s.matches(root, node, index, collectionSize))
+                if (s.matches(root, node, index, collectionSize, depth))
                     return true;
             }
             return false;

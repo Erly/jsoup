@@ -59,7 +59,7 @@ public class Collector {
         public void head(Node node, int depth, int index, int collectionSize) {
             if (node instanceof Element) {
                 Element el = (Element) node;
-                if (eval.matches(root, el, index, collectionSize))
+                if (eval.matches(root, el, index, collectionSize, depth))
                     elements.add(el);
             }
         }

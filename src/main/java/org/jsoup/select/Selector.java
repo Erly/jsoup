@@ -153,7 +153,10 @@ public class Selector {
                 selectedElements.clear();
                 int elementsToQuerySize = elementsToQuery.size();
                 for (int i = 0; i < elementsToQuerySize; i++) {
-                    selectedElements.addAll(Collector.collect(eval, elementsToQuery.get(i), i, elementsToQuerySize));
+                    Elements collectedElements = Collector.collect(eval, elementsToQuery.get(i), i, elementsToQuerySize);
+                    for (Element el : collectedElements) {
+                        if (!selectedElements.contains(el)) selectedElements.add(el);
+                    }
                 }
             }
             return selectedElements;

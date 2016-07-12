@@ -42,8 +42,8 @@ abstract class StructuralEvaluator extends Evaluator {
             return !evaluator.matches(root, node);
         }
 
-        public boolean matches(Element root, Element node, int index, int collectionSize) {
-            return !evaluator.matches(root, node, index, collectionSize);
+        public boolean matches(Element root, Element node, int index, int collectionSize, int depth) {
+            return !evaluator.matches(root, node, index, collectionSize, depth);
         }
 
         @Override
@@ -73,6 +73,22 @@ abstract class StructuralEvaluator extends Evaluator {
         }
 
         @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            if (root == element)
+                return false;
+
+            Element parent = element.parent();
+            while (true) {
+                if (evaluator.matches(root, parent, index, collectionSize, depth - 1))
+                    return true;
+                if (parent == root)
+                    break;
+                parent = parent.parent();
+            }
+            return false;
+        }
+
+        @Override
         public String toString() {
             return String.format(":parent%s", evaluator);
         }
@@ -92,8 +108,37 @@ abstract class StructuralEvaluator extends Evaluator {
         }
 
         @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            if (root == element)
+                return false;
+
+            Element parent = element.parent();
+            return parent != null && evaluator.matches(root, parent, index, collectionSize, depth - 1);
+        }
+
+        @Override
         public String toString() {
             return String.format(":ImmediateParent%s", evaluator);
+        }
+    }
+
+    static class Depth0 extends StructuralEvaluator {
+        public Depth0(Evaluator evaluator) {
+            this.evaluator = evaluator;
+        }
+
+        public boolean matches(Element root, Element element) {
+            return evaluator.matches(root, element);
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return depth == 0 && evaluator.matches(root, element, index, collectionSize, depth);
+        }
+
+        @Override
+        public String toString() {
+            return String.format(":Depth0%s", evaluator);
         }
     }
 

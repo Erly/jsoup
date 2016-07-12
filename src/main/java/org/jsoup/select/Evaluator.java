@@ -3,6 +3,7 @@ package org.jsoup.select;
 import org.jsoup.helper.Validate;
 import org.jsoup.nodes.*;
 
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,7 @@ public abstract class Evaluator {
      */
     public abstract boolean matches(Element root, Element element);
 
-    public boolean matches(Element root, Element element, int index, int collectionSize)
+    public boolean matches(Element root, Element element, int index, int collectionSize, int depth)
     {
         return matches(root, element);
     }
@@ -361,8 +362,10 @@ public abstract class Evaluator {
         }
 
         @Override
-        public boolean matches(Element root, Element element, int index, int collectionSize) {
-            return this.index == index;
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            if (this.index < 0)
+                return index == collectionSize + this.index && depth == 0;
+            return this.index == index && depth == 0;
         }
 
         @Override
@@ -430,8 +433,13 @@ public abstract class Evaluator {
     		
     		return (pos-b)*a >= 0 && (pos-b)%a==0;
     	}
-    	
-		@Override
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return depth == 0 && matches(root, element);
+        }
+
+        @Override
 		public String toString() {
 			if (a == 0)
 				return String.format(":%s(%d)",getPseudoClass(), b);
@@ -722,8 +730,8 @@ public abstract class Evaluator {
         }
 
         @Override
-        public boolean matches(Element root, Element element, int index, int collectionSize) {
-            return index == 0;
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return index == 0 && depth == 0;
         }
     }
 
@@ -737,8 +745,8 @@ public abstract class Evaluator {
         }
 
         @Override
-        public boolean matches(Element root, Element element, int index, int collectionSize) {
-            return index == collectionSize - 1;
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return index == collectionSize - 1 && depth == 0;
         }
     }
 
@@ -769,6 +777,36 @@ public abstract class Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
             return element.attr("selected") == "true";
+        }
+    }
+
+    /**
+     * Evaluator for matching odd elements (jquery :odd)
+     */
+    public static final class IsOdd extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            throw new InvalidParameterException("Index and depth are necessary to know if it's odd");
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return depth == 0 && index % 2 == 1;
+        }
+    }
+
+    /**
+     * Evaluator for matching even elements (jquery :even)
+     */
+    public static final class IsEven extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            throw new InvalidParameterException("Index and depth are necessary to know if it's even");
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            return depth == 0 && index % 2 == 0;
         }
     }
 
@@ -819,7 +857,7 @@ public abstract class Evaluator {
         HashMap<String, String> styleMap = new HashMap<String, String>();
         String[] styleArray = inlineStyle.split(";");
         for (String styleProp : styleArray) {
-            String[] prop = styleProp.split(";");
+            String[] prop = styleProp.split(":");
             if (prop.length == 2) styleMap.put(prop[0], prop[1]);
         }
 
@@ -829,11 +867,13 @@ public abstract class Evaluator {
         }
 
         if (styleMap.containsKey("width")) {
-            double width = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
+            //double width = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
+            double width = Double.parseDouble(styleMap.get("width").replaceAll("\\D+", ""));
             if (width == 0) return true;
         }
         if (styleMap.containsKey("height")) {
-            double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
+            //double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
+            double height = Double.parseDouble(styleMap.get("height").replaceAll("\\D+", ""));
             if (height == 0) return true;
         }
 
