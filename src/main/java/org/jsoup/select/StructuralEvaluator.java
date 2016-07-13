@@ -122,9 +122,12 @@ abstract class StructuralEvaluator extends Evaluator {
         }
     }
 
-    static class Depth0 extends StructuralEvaluator {
-        public Depth0(Evaluator evaluator) {
+    static class DepthN extends StructuralEvaluator {
+        int depth;
+
+        public DepthN(Evaluator evaluator, int depth) {
             this.evaluator = evaluator;
+            this.depth = depth;
         }
 
         public boolean matches(Element root, Element element) {
@@ -133,12 +136,12 @@ abstract class StructuralEvaluator extends Evaluator {
 
         @Override
         public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
-            return depth == 0 && evaluator.matches(root, element, index, collectionSize, depth);
+            return depth == this.depth && evaluator.matches(root, element, index, collectionSize, depth);
         }
 
         @Override
         public String toString() {
-            return String.format(":Depth0%s", evaluator);
+            return String.format(":DepthN%s", evaluator);
         }
     }
 

@@ -105,9 +105,9 @@ class QueryParser {
                     if (!firstEvalsFinished) firstEvals.add(ev);
                     else secondEvals.add(ev);
                 }
-                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.ImmediateParent(currentEval), new StructuralEvaluator.Depth0(new CombiningEvaluator.And(firstEvals)), new CombiningEvaluator.And(secondEvals));
+                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.DepthN(new CombiningEvaluator.And(firstEvals), 1), new CombiningEvaluator.And(secondEvals));
             } else {
-                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.ImmediateParent(currentEval), new StructuralEvaluator.Depth0(newEval));
+                currentEval = new CombiningEvaluator.And(currentEval, new StructuralEvaluator.DepthN(newEval, 1));
             }
         else if (combinator == ' ')
             /*if (currentEval instanceof CombiningEvaluator.And) {
@@ -232,6 +232,8 @@ class QueryParser {
             evals.add(new Evaluator.IsParent());
         else if (tq.matchChomp(":selected"))
             evals.add(new Evaluator.IsSelected());
+        else if (tq.matchChomp(":checked"))
+            evals.add(new Evaluator.IsChecked());
         else if (tq.matchChomp(":visible"))
             evals.add(new Evaluator.IsVisible());
         else if (tq.matchChomp(":hidden"))

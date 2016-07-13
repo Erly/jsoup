@@ -154,10 +154,9 @@ public class Selector {
                 int elementsToQuerySize = elementsToQuery.size();
                 for (int i = 0; i < elementsToQuerySize; i++) {
                     Elements collectedElements = Collector.collect(eval, elementsToQuery.get(i), i, elementsToQuerySize);
-                    for (Element el : collectedElements) {
-                        if (!selectedElements.contains(el)) selectedElements.add(el);
-                    }
+                    collectedElements.stream().filter(el -> !selectedElements.contains(el)).forEach(selectedElements::add);
                 }
+                elementsToQuery.clear();
             }
             return selectedElements;
         }

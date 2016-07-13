@@ -620,8 +620,7 @@ public abstract class Node implements Cloneable {
     }
 
     public boolean isSame(Node o) {
-        if (this == o) return true;
-        return hasSameValue(o) && ((parentNode == null && o.parentNode == null) || parentNode.isSame(o.parentNode));
+        return this == o || hasSameValue(o) && ((parentNode == null && o.parentNode == null) || (parentNode != null && parentNode.isSame(o.parentNode)));
     }
 
     /**

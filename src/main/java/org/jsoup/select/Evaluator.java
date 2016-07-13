@@ -776,7 +776,17 @@ public abstract class Evaluator {
     public static final class IsSelected extends Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
-            return element.attr("selected") == "true";
+            return element.attr("selected").equals("true");
+        }
+    }
+
+    /**
+     * Evaluator for matching checked elements (jquery :checked)
+     */
+    public static final class IsChecked extends Evaluator {
+        @Override
+        public boolean matches(Element root, Element element) {
+            return element.hasAttr("checked") || element.attr("selected").equals("true");
         }
     }
 
@@ -846,7 +856,7 @@ public abstract class Evaluator {
 
     private static boolean ElementIsItselfHidden(Element element)
     {
-        if (element.nodeName().equals("input") && element.attr("type").equals("hidden"))
+        if (element.nodeName().equalsIgnoreCase("input") && element.attr("type").equalsIgnoreCase("hidden"))
         {
             return true;
         }
@@ -867,14 +877,16 @@ public abstract class Evaluator {
         }
 
         if (styleMap.containsKey("width")) {
-            //double width = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("width")).group());
-            double width = Double.parseDouble(styleMap.get("width").replaceAll("\\D+", ""));
-            if (width == 0) return true;
+            try {
+                double width = Double.parseDouble(styleMap.get("width").replaceAll("\\D+", ""));
+                if (width == 0) return true;
+            } catch (Exception ignored) {}
         }
         if (styleMap.containsKey("height")) {
-            //double height = Double.parseDouble(NUMBER_PART.matcher(styleMap.get("height")).group());
-            double height = Double.parseDouble(styleMap.get("height").replaceAll("\\D+", ""));
-            if (height == 0) return true;
+            try {
+                double height = Double.parseDouble(styleMap.get("height").replaceAll("\\D+", ""));
+                if (height == 0) return true;
+            } catch (Exception ignored) {}
         }
 
         String widthAttr, heightAttr;
