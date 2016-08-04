@@ -145,7 +145,7 @@ public class Selector {
     }
 
     private Elements select() {
-        if (evaluator instanceof CombiningEvaluator) {
+        if (evaluator instanceof CombiningEvaluator.And) {
             Elements elementsToQuery;
             Elements selectedElements = new Elements(root);
             for (Evaluator eval : ((CombiningEvaluator) evaluator).evaluators) {
