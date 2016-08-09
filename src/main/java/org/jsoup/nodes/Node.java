@@ -616,11 +616,14 @@ public abstract class Node implements Cloneable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        return this.outerHtml().equals(((Node) o).outerHtml());
+        return ((Element) this).tag().equals(((Element) o).tag())
+            && this.childNodes().size() == ((Node) o).childNodes().size()
+            && this.attributes().equals(((Element) o).attributes())
+            && this.outerHtml().equals(((Node) o).outerHtml());
     }
 
     public boolean isSame(Node o) {
-        return this == o || hasSameValue(o) && ((parentNode == null && o.parentNode == null) || (parentNode != null && parentNode.isSame(o.parentNode)));
+        return this == o || ((parentNode == null && o.parentNode == null) || (parentNode != null && parentNode.isSame(o.parentNode))) && hasSameValue(o);
     }
 
     /**
