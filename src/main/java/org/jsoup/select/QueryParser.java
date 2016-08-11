@@ -97,11 +97,15 @@ class QueryParser {
         // for most combinators: change the current eval into an AND of the current eval and the new eval
         if (combinator == '>')
             if (newEval instanceof CombiningEvaluator.And) {
-                ArrayList<Evaluator> firstEvals = new ArrayList<Evaluator>();
-                ArrayList<Evaluator> secondEvals = new ArrayList<Evaluator>();
+                ArrayList<Evaluator> firstEvals = new ArrayList<>();
+                ArrayList<Evaluator> secondEvals = new ArrayList<>();
                 Boolean firstEvalsFinished = false;
                 for (Evaluator ev : ((CombiningEvaluator.And) newEval).evaluators) {
-                    if (ev instanceof StructuralEvaluator) firstEvalsFinished = true;
+                    if (ev instanceof StructuralEvaluator ||
+                            ev instanceof Evaluator.IsFirst ||
+                            ev instanceof Evaluator.IsLast ||
+                            ev instanceof Evaluator.IsEven ||
+                            ev instanceof Evaluator.IsOdd) firstEvalsFinished = true;
                     if (!firstEvalsFinished) firstEvals.add(ev);
                     else secondEvals.add(ev);
                 }

@@ -34,6 +34,8 @@ public abstract class Evaluator {
         return matches(root, element);
     }
 
+    public static abstract class ComplexEvaluator extends Evaluator {}
+
     /**
      * Evaluator for tag name
      */
@@ -322,6 +324,13 @@ public abstract class Evaluator {
         }
 
         @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            if (this.index < 0)
+                return index < collectionSize + this.index && depth == 0;
+            return index < this.index && depth == 0;
+        }
+
+        @Override
         public String toString() {
             return String.format(":lt(%d)", index);
         }
@@ -339,6 +348,13 @@ public abstract class Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
             return element.elementSiblingIndex() > index;
+        }
+
+        @Override
+        public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
+            if (this.index < 0)
+                return index > collectionSize + this.index && depth == 0;
+            return index > this.index && depth == 0;
         }
 
         @Override
@@ -365,7 +381,7 @@ public abstract class Evaluator {
         public boolean matches(Element root, Element element, int index, int collectionSize, int depth) {
             if (this.index < 0)
                 return index == collectionSize + this.index && depth == 0;
-            return this.index == index && depth == 0;
+            return index == this.index && depth == 0;
         }
 
         @Override
@@ -378,7 +394,7 @@ public abstract class Evaluator {
     /**
      * Evaluator for matching the last sibling (css :last-child)
      */
-    public static final class IsLastChild extends Evaluator {
+    public static final class IsLastChild extends ComplexEvaluator {
 		@Override
 		public boolean matches(Element root, Element element) {
 			final Element p = element.parent();
@@ -412,7 +428,7 @@ public abstract class Evaluator {
     }
 
     
-    public static abstract class CssNthEvaluator extends Evaluator {
+    public static abstract class CssNthEvaluator extends ComplexEvaluator {
     	protected final int a, b;
     	
     	public CssNthEvaluator(int a, int b) {
@@ -545,7 +561,7 @@ public abstract class Evaluator {
     /**
      * Evaluator for matching the first sibling (css :first-child)
      */
-    public static final class IsFirstChild extends Evaluator {
+    public static final class IsFirstChild extends ComplexEvaluator {
     	@Override
     	public boolean matches(Element root, Element element) {
     		final Element p = element.parent();
@@ -566,7 +582,7 @@ public abstract class Evaluator {
     public static final class IsRoot extends Evaluator {
     	@Override
     	public boolean matches(Element root, Element element) {
-    		final Element r = root instanceof Document?root.child(0):root;
+    		final Element r = root instanceof Document ? root.child(0) : root;
     		return element == r;
     	}
     	@Override
@@ -587,7 +603,7 @@ public abstract class Evaluator {
     	}
     }
 
-    public static final class IsOnlyOfType extends Evaluator {
+    public static final class IsOnlyOfType extends ComplexEvaluator {
 		@Override
 		public boolean matches(Element root, Element element) {
 			final Element p = element.parent();
@@ -776,7 +792,8 @@ public abstract class Evaluator {
     public static final class IsSelected extends Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
-            return element.attr("selected").equals("true");
+            return element.hasAttr("selected") &&
+                    !element.attr("selected").equalsIgnoreCase("false");
         }
     }
 
@@ -786,7 +803,9 @@ public abstract class Evaluator {
     public static final class IsChecked extends Evaluator {
         @Override
         public boolean matches(Element root, Element element) {
-            return element.hasAttr("checked") || element.attr("selected").equals("true");
+            return element.hasAttr("checked") ||
+                    (element.hasAttr("selected") &&
+                            !element.attr("selected").equalsIgnoreCase("false"));
         }
     }
 
@@ -823,7 +842,7 @@ public abstract class Evaluator {
     /**
      * Evaluator for matching the visible elements (jquery :visible)
      */
-    public static final class IsVisible extends Evaluator {
+    public static final class IsVisible extends ComplexEvaluator {
         @Override
         public boolean matches(Element root, Element element) {
             return IsVisible(element);
@@ -833,7 +852,7 @@ public abstract class Evaluator {
     /**
      * Evaluator for matching the hidden elements (jquery :hidden)
      */
-    public static final class IsHidden extends Evaluator {
+    public static final class IsHidden extends ComplexEvaluator {
         @Override
         public boolean matches(Element root, Element element) {
             return !IsVisible(element);

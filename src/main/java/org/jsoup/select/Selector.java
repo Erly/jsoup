@@ -145,10 +145,15 @@ public class Selector {
     }
 
     private Elements select() {
-        if (evaluator instanceof CombiningEvaluator.And) {
-            Elements elementsToQuery;
+//        if (evaluator instanceof CombiningEvaluator.And) {
+            /*Elements elementsToQuery;
             Elements selectedElements = new Elements(root);
             for (Evaluator eval : ((CombiningEvaluator) evaluator).evaluators) {
+                Elements orElements = null;
+                if (eval instanceof CombiningEvaluator.Or) {
+                    orElements = Collector.collect(((CombiningEvaluator.Or)eval).rightMostEvaluator(), root);
+                    eval = ((CombiningEvaluator.Or) eval).evaluators.get(0);
+                }
                 elementsToQuery = selectedElements.clone();
                 selectedElements.clear();
                 int elementsToQuerySize = elementsToQuery.size();
@@ -159,11 +164,84 @@ public class Selector {
                     }
                 }
                 elementsToQuery.clear();
+                if (orElements != null) {
+                    selectedElements.addAll(orElements);
+                }
             }
-            return selectedElements;
+            return selectedElements;*/
+//            return select((CombiningEvaluator.And)evaluator, new Elements(root));
+//        } else if (evaluator instanceof CombiningEvaluator.Or) {
+//            Elements orElements;
+//            Evaluator rightMostEvaluator = ((CombiningEvaluator.Or)eval).rightMostEvaluator();
+//            if (rightMostEvaluator instanceof CombiningEvaluator.And) {
+//                orElements = select((CombiningEvaluator.And) rightMostEvaluator, new Elements(root));
+//            } else {
+//                orElements = Collector.collect(rightMostEvaluator, root);
+//            }
+//
+//            Evaluator leftMostEvaluator = ((CombiningEvaluator.Or) eval).evaluators.get(0);
+//        }
+//
+//        return Collector.collect(evaluator, root);
+        return select(evaluator);
+    }
+
+    private Elements select(Evaluator evaluator) {
+        if (evaluator instanceof CombiningEvaluator.And) {
+            return select((CombiningEvaluator.And)evaluator, new Elements(root));
+        } else if (evaluator instanceof CombiningEvaluator.Or) {
+            Elements leftOrElements, rightOrElements;
+            Evaluator leftMostEvaluator = ((CombiningEvaluator.Or) evaluator).evaluators.get(0);
+            Evaluator rightMostEvaluator = ((CombiningEvaluator.Or)evaluator).rightMostEvaluator();
+            leftOrElements = select(leftMostEvaluator);
+            rightOrElements = select(rightMostEvaluator);
+            for (Element el : leftOrElements) {
+                if (!rightOrElements.contains(el)) rightOrElements.add(el);
+            }
+            return rightOrElements;
         }
 
         return Collector.collect(evaluator, root);
+    }
+
+    private Elements select(CombiningEvaluator.And evaluator, Elements rootElements) {
+        for (Evaluator eval : evaluator.evaluators) {
+            Elements orElements = null;
+            if (eval instanceof CombiningEvaluator.Or) {
+                Evaluator rightMostEvaluator = ((CombiningEvaluator.Or)eval).rightMostEvaluator();
+                if (rightMostEvaluator instanceof CombiningEvaluator.And) {
+                    orElements = select((CombiningEvaluator.And) rightMostEvaluator, new Elements(root));
+                } else {
+                    orElements = Collector.collect(rightMostEvaluator, root);
+                }
+
+                eval = ((CombiningEvaluator.Or) eval).evaluators.get(0);
+            }
+
+            if (eval instanceof CombiningEvaluator.And) {
+                rootElements = select((CombiningEvaluator.And)eval, rootElements);
+            } else {
+                rootElements = select(eval, rootElements);
+            }
+            if (orElements != null) {
+                for (Element el : orElements) {
+                    if (!rootElements.contains(el)) rootElements.add(el);
+                }
+            }
+        }
+        return rootElements;
+    }
+
+    private Elements select(Evaluator eval, Elements elementsToQuery) {
+        Elements selectedElements = new Elements();
+        int elementsToQuerySize = elementsToQuery.size();
+        for (int i = 0; i < elementsToQuerySize; i++) {
+            Elements collectedElements = Collector.collect(eval, elementsToQuery.get(i), i, elementsToQuerySize);
+            for (Element el : collectedElements) {
+                if (!selectedElements.contains(el)) selectedElements.add(el);
+            }
+        }
+        return selectedElements;
     }
 
     // exclude set. package open so that Elements can implement .not() selector.
